@@ -102,7 +102,7 @@ class REDNet15(nn.Module):
         return x
 
 def l2_loss(y_true,y_pred):
-    return torch.sum(torch.square((y_true-y_pred)))
+    return torch.mean(torch.square((y_true-y_pred)))
 
 def psnr_metric(y_true,y_pred):
     batch_psnr = -10.0 * (1.0/math.log(10)) * torch.log(torch.mean(torch.square(y_pred - y_true),dim=[1,2,3]))
