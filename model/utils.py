@@ -179,7 +179,7 @@ class BurstData(Dataset):
         if self.binning:
             L = xc.shape[-1]
             xbin = np.sum(xc, axis=3,keepdims=True)
-            xbin = 1-xbin/L
+            xbin = xbin/L
             xbin_noise = add_QIS_noise(xbin,self.alpha,self.read_noise,self.nbits)
             images = {"x_binary": xc, "x_noisy": x, "y": y, "x_binned_noisy":xbin_noise}
         return images
