@@ -14,7 +14,7 @@ def he_initialization(m):
         nn.init.zeros_(m.bias)
 
 class encoder_block(nn.Module):
-    def __init__(self,in_channels, out_channels, kernel_size=3,stride=1, padding=0, activation=True, weight_initialization=True):
+    def __init__(self,in_channels, out_channels, kernel_size=3, stride=1, padding=1, activation=True, weight_initialization=True):
         super(encoder_block,self).__init__()
         self.conv = nn.Conv2d(in_channels,out_channels,kernel_size,stride=stride,padding=padding)
 
@@ -35,7 +35,7 @@ class encoder_block(nn.Module):
         return out
 
 class decoder_block(nn.Module):
-    def __init__(self,in_channels, out_channels, kernel_size=3,stride=1, padding=0, activation=True, weight_initialization=True):
+    def __init__(self,in_channels, out_channels, kernel_size=3,stride=1, padding=1, activation=True, weight_initialization=True):
         super(decoder_block,self).__init__()
         self.deconv = nn.ConvTranspose2d(in_channels,out_channels,kernel_size,stride=stride,padding=padding)
 
@@ -111,8 +111,8 @@ def psnr_metric(y_true,y_pred):
 
 
 if __name__ == "__main__":
-    input = torch.ones((2, 1, 64, 64))
-    gt = torch.randn((2, 1, 64, 64))
+    input = torch.ones((2, 1, 128, 128))
+    gt = torch.randn((2, 1, 128, 128))
     model = REDNet15()
     # print(model)
     output = model(input)
