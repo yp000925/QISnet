@@ -70,7 +70,6 @@ def train_epoch(model,dataloader, optimizer, epoch_idx):
             print("small")
             raise ValueError
 
-
     return epoch_loss,avg_psnr
 
 def eval_epoch(model,dataloader):
@@ -123,7 +122,7 @@ if __name__=="__main__":
                               is_train=True,nbits=nbits,binning=binning)
     dataset_test = BurstData(directory =test_path, patch_sz=patch_sz,batch_sz=batch_sz,num_patch=num_patch,burst_sz=burst_sz,alpha=alpha,
                              read_noise=read_noise, jit=jit, J=J, channel_first=channel_first,noise=noise,rd_move=rd_move,
-                             is_train=True,nbits=nbits,binning=binning)
+                             is_train=False,nbits=nbits,binning=binning)
     logger.info("\n Dataset loaded. Train:{:d} Test:{:d}".format(len(dataset_train)*num_patch,len(dataset_test)*num_patch))
     train_loader = DataLoader(dataset_train, batch_size=batch_sz,collate_fn=dataset_train.collect_fn)
     test_loader = DataLoader(dataset_test, batch_size=batch_sz,collate_fn=dataset_test.collect_fn)

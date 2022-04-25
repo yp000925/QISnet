@@ -92,29 +92,29 @@ def image_resize(img_arr,size):
     img = Image.fromarray(img_arr.astype(np.uint8)).resize(size)
     return np.array(img)/255.0
 
-def gen_data(crops, patch_sz, burst_sz, jit=0, J=2, rd_move=False):
-    '''
-    :param crops: cropped images
-    :param patch_sz: patch dimension after downsampling
-    :param burst_sz: number of burst frames in for each cropped patch
-    :param jit: incidate the movement in pixel scale across burst time
-    :param J: downsampling ratio
-    :param rd_move: indicate the movement is linear or randomly -> if linear, the GT will be the middle point(frame)
-    :return:
-        y: GT with dimension [#cropped patches, patch_sz, patch_sz, 1]
-        x: Burst observation with dimension [#cropped patches, patch_sz, patch_sz, burst_sz]
-        cnt: #cropped_patches
-
-    '''
-    cnt = len(crops)
-    y = np.empty([cnt,patch_sz,patch_sz,1]) #ground truth
-    x = np.empty([cnt,patch_sz,patch_sz,burst_sz]) #burst images with noise
-    for i in range(cnt):
-        stack = make_burst(crops[i], burst_sz,patch_sz,jit,J,rd_move)
-        y[i,:,:,0] = stack[:,:,0] if rd_move else stack[:,:,burst_sz//2] #取的是均匀movement里面的中间时刻(frame)的值作为GT
-        x[i,:,:,:] = stack
-    return y, x, cnt
-
+# def gen_data(crops, patch_sz, burst_sz, jit=0, J=2, rd_move=False):
+#     '''
+#     :param crops: cropped images
+#     :param patch_sz: patch dimension after downsampling
+#     :param burst_sz: number of burst frames in for each cropped patch
+#     :param jit: incidate the movement in pixel scale across burst time
+#     :param J: downsampling ratio
+#     :param rd_move: indicate the movement is linear or randomly -> if linear, the GT will be the middle point(frame)
+#     :return:
+#         y: GT with dimension [#cropped patches, patch_sz, patch_sz, 1]
+#         x: Burst observation with dimension [#cropped patches, patch_sz, patch_sz, burst_sz]
+#         cnt: #cropped_patches
+#
+#     '''
+#     cnt = len(crops)
+#     y = np.empty([cnt,patch_sz,patch_sz,1]) #ground truth
+#     x = np.empty([cnt,patch_sz,patch_sz,burst_sz]) #burst images with noise
+#     for i in range(cnt):
+#         stack = make_burst(crops[i], burst_sz,patch_sz,jit,J,rd_move)
+#         y[i,:,:,0] = stack[:,:,0] if rd_move else stack[:,:,burst_sz//2] #取的是均匀movement里面的中间时刻(frame)的值作为GT
+#         x[i,:,:,:] = stack
+#     return y, x, cnt
+#
 
 def add_QIS_noise(image, alpha, read_noise, nbits=3):
     pix_max = 2**nbits-1
@@ -215,12 +215,17 @@ class BurstData(Dataset):
         [height, width] = image.shape
         if height< window_sz or width < window_sz:
             print("the window_sz is larger than the image dimension")
-            print("image dimension:",height,width)
+            print("image dimension:", height, width)
             print("window_sz",window_sz)
             raise ValueError
+
         for i in range(num_patch):
-            crops[i,:,:,0] = random_crop(image,window_sz,window_sz)
-        # print("shape is ",crops.shape)
+            if self.is_train:
+                crops[i,:,:,0] = random_crop(image,window_sz,window_sz)
+                # print("shape is ",crops.shape)
+            else:
+                crops[i,:,:,0] = image[0:window_sz, 0:window_sz]
+
         return crops
 
     def gen_data(self, crops, patch_sz, burst_sz, jit=0, J=2, rd_move=False):
@@ -275,7 +280,6 @@ if __name__=="__main__":
     dataloader = DataLoader(dataset, batch_size=5,collate_fn=dataset.collect_fn)
     # device = torch.device('cpu')
     for batch_i, (x,y) in enumerate(dataloader):
-
         images = dataset.get_images(idx=0)
         x_binary = images['x_binary']
         x_noisy = images['x_noisy']
