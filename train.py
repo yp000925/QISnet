@@ -70,13 +70,13 @@ def train_epoch(model,dataloader, optimizer, epoch_idx):
             print("small")
             raise ValueError
 
-    return epoch_loss,avg_psnr
+    return epoch_loss/(batch_i+1),avg_psnr/(batch_i+1)
 
 def eval_epoch(model,dataloader):
     pbar = enumerate(dataloader)
     pbar = tqdm(pbar, total=len(dataloader))
     epoch_loss =0
-    avg_psnr = 0
+    psnr_acc = 0
 
     logger.info('\n Evaluation ===============================================')
     logger.info(('\n'+'%10s' * 2)%('l2-loss','PSNR'))
@@ -89,12 +89,12 @@ def eval_epoch(model,dataloader):
             loss = l2_loss(y_pred=output, y_true=y)
             _, psnr = psnr_metric(y_pred=output,y_true=y)
             epoch_loss += loss.cpu().numpy()
-            avg_psnr += psnr.cpu().numpy()
-            info = ('%10.4g' * 2) % (loss/(batch_i+1), avg_psnr/(batch_i+1))
+            psnr_acc += psnr.cpu().numpy()
+            info = ('%10.4g' * 2) % (epoch_loss/(batch_i+1), psnr_acc/(batch_i+1))
             pbar.set_description(info)
 
 
-    return epoch_loss,avg_psnr
+    return epoch_loss/(batch_i+1),psnr_acc/(batch_i+1)
 
 
 

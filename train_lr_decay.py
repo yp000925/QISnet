@@ -74,7 +74,7 @@ def train_epoch(model,dataloader, optimizer, epoch_idx):
             print("small")
             raise ValueError
 
-    return epoch_loss,avg_psnr
+    return epoch_loss/(batch_i+1),avg_psnr/(batch_i+1)
 
 def eval_epoch(model,dataloader):
     pbar = enumerate(dataloader)
@@ -94,11 +94,11 @@ def eval_epoch(model,dataloader):
             _, psnr = psnr_metric(y_pred=output,y_true=y)
             epoch_loss += loss.cpu().numpy()
             avg_psnr += psnr.cpu().numpy()
-            info = ('%10.4g' * 2) % (loss/(batch_i+1), avg_psnr/(batch_i+1))
+            info = ('%10.4g' * 2) % (epoch_loss/(batch_i+1), avg_psnr/(batch_i+1))
             pbar.set_description(info)
 
 
-    return epoch_loss,avg_psnr
+    return epoch_loss/(batch_i+1),avg_psnr/(batch_i+1)
 
 
 
@@ -159,7 +159,7 @@ if __name__=="__main__":
         logger.info("\n successfully load model %10s" % (model_name))
 
 
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, patience =2, verbose=True,eps = 5e-6,factor=0.5)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, patience =1, verbose=True,eps = 1e-3,factor=0.5)
     scheduler.last_epoch = start_epoch - 1
 
     # Start training
