@@ -66,7 +66,7 @@ def train_epoch(model,dataloader, optimizer, epoch_idx):
                 '%g' % (epoch_idx), mem, epoch_loss/(batch_i+1), avg_psnr/(batch_i+1)
         )
         pbar.set_description(info)
-        if epoch_loss <= 1:
+        if epoch_loss <= 1e-4:
             print("small")
             raise ValueError
 
