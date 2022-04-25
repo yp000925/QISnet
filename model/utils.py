@@ -162,26 +162,32 @@ class BurstData(Dataset):
     def __getitem__(self, idx):
         img_name = self.imgs_name[idx]
         crops = self.generate_crop(self.directory,img_name,self.patch_sz,self.num_patch,self.jit,self.J)
-        self.y, self.xc, _ = self.gen_data(crops,self.patch_sz,self.burst_sz,self.jit, self.J, rd_move=self.rd_move,binning=self.binning)
+        self.y, self.xc, _ = self.gen_data(crops,self.patch_sz,self.burst_sz,self.jit, self.J, rd_move=self.rd_move)
         # print("Ground truth size is ", self.y.shape)
         # print("Burst obsearvation size is ", self.xc.shape)
         self.x = add_QIS_noise(self.xc,self.alpha,self.read_noise,self.nbits) if self.noise else self.xc
+        if self.binning:
+            self.x = np.mean(self.x,axis=3, keepdims=True)
         return torch.from_numpy(self.x), torch.from_numpy(self.y)
 
     def get_images(self, idx):
         imgs_name = self.imgs_name[idx]
         crops= self.generate_crop(self.directory,imgs_name,self.patch_sz,self.num_patch,self.jit,self.J)
-        y, xc, _ = self.gen_data(crops,self.patch_sz,self.burst_sz,self.jit, self.J, rd_move=self.rd_move, binning = False)
+        y, xc, _ = self.gen_data(crops,self.patch_sz,self.burst_sz,self.jit, self.J, rd_move=self.rd_move)
         # print("Ground truth size is ", self.y.shape)
         # print("Burst obsearvation size is ", self.xc.shape)
         x = add_QIS_noise(xc,self.alpha,self.read_noise,self.nbits)
         images = {"x_shift": xc, "x_noisy": x, "y": y}
         if self.binning:
-            L = xc.shape[-1]
-            xbin = np.sum(xc, axis=3,keepdims=True)
-            xbin = xbin/L
-            xbin_noise = add_QIS_noise(xbin,self.alpha,self.read_noise,self.nbits)
+            xbin_noise = np.mean(x,axis=3, keepdims=True)
             images = {"x_binary": xc, "x_noisy": x, "y": y, "x_binned_noisy":xbin_noise}
+
+        # if self.binning:
+        #     L = xc.shape[-1]
+        #     xbin = np.sum(xc, axis=3,keepdims=True)
+        #     xbin = xbin/L
+        #     xbin_noise = add_QIS_noise(xbin,self.alpha,self.read_noise,self.nbits)
+        #     images = {"x_binary": xc, "x_noisy": x, "y": y, "x_binned_noisy":xbin_noise}
         return images
 
     def __len__(self):
@@ -217,7 +223,7 @@ class BurstData(Dataset):
         # print("shape is ",crops.shape)
         return crops
 
-    def gen_data(self, crops, patch_sz, burst_sz, jit=0, J=2, rd_move=False, binning= True):
+    def gen_data(self, crops, patch_sz, burst_sz, jit=0, J=2, rd_move=False):
         '''
         :param crops: cropped images
         :param patch_sz: patch dimension after downsampling
@@ -238,10 +244,10 @@ class BurstData(Dataset):
             stack = make_burst(crops[i], burst_sz,patch_sz,jit,J,rd_move)
             y[i,:,:,0] = stack[:,:,0] if rd_move else stack[:,:,burst_sz//2] #取的是均匀movement里面的中间时刻(frame)的值作为GT
             x[i,:,:,:] = stack
-        if binning:
-            L = x.shape[-1]
-            x = np.sum(x, axis=3, keepdims=True)
-            x = x/L
+        # if binning:
+        #     L = x.shape[-1]
+        #     x = np.sum(x, axis=3, keepdims=True)
+        #     x = x/L
         return y, x, cnt
 
     def collect_fn(self,data):
@@ -263,31 +269,31 @@ if __name__=="__main__":
     patch_sz = 128
     J=2
     binning = True
-    directory = '/home/zhangyp/PycharmProjects/QISnet/VOC2012/train_data'
+    directory = '/Users/zhangyunping/Library/CloudStorage/OneDrive-connect.hku.hk/PhD/ECCV2020_Dynamic-master/datasample/VOC2012/small_test'
     dataset = BurstData(directory,patch_sz=patch_sz,num_patch=4,burst_sz=2,batch_sz=16,alpha=4,read_noise=0.25,
                         jit=0,J=J,channel_first=True,noise=True,rd_move=False,is_train=True,nbits=3,binning=binning)
     dataloader = DataLoader(dataset, batch_size=5,collate_fn=dataset.collect_fn)
     # device = torch.device('cpu')
     for batch_i, (x,y) in enumerate(dataloader):
-        continue
-    #     images = dataset.get_images(idx=4)
-    #     x_binary = images['x_binary']
-    #     x_noisy = images['x_noisy']
-    #     cln_img = images['y']
-    #     noisy_img = x_noisy[0,:,:,0]*255
-    #     noisy_img = Image.fromarray(noisy_img.astype(np.uint8))
-    #     noisy_img.show()
-    #     gt_img = cln_img[0,:,:,0]*255
-    #     gt_img = Image.fromarray(gt_img.astype(np.uint8))
-    #     gt_img.show()
-    #     if binning:
-    #         x_bined_noise = images['x_binned_noisy']
-    #         x_bined_img = x_bined_noise[0,:,:,0]*255
-    #         x_bined_img = Image.fromarray(x_bined_img.astype(np.uint8))
-    #         x_bined_img.show()
-    #     break
-    #
-    # for i in range(x_noisy.shape[-1]):
-    #     img_data = x_noisy[0,:,:,i]*255
-    #     img = Image.fromarray(img_data.astype(np.uint8))
-    #     img.show()
+
+        images = dataset.get_images(idx=0)
+        x_binary = images['x_binary']
+        x_noisy = images['x_noisy']
+        cln_img = images['y']
+        noisy_img = x_noisy[0,:,:,0]*255
+        noisy_img = Image.fromarray(noisy_img.astype(np.uint8))
+        noisy_img.show()
+        gt_img = cln_img[0,:,:,0]*255
+        gt_img = Image.fromarray(gt_img.astype(np.uint8))
+        gt_img.show()
+        if binning:
+            x_bined_noise = images['x_binned_noisy']
+            x_bined_img = x_bined_noise[0,:,:,0]*255
+            x_bined_img = Image.fromarray(x_bined_img.astype(np.uint8))
+            x_bined_img.show()
+        break
+
+        # for i in range(x_noisy.shape[-1]):
+        #     img_data = x_noisy[0,:,:,i]*255
+        #     img = Image.fromarray(img_data.astype(np.uint8))
+        #     img.show()
