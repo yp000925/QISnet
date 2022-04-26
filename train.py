@@ -228,7 +228,6 @@ if __name__=="__main__":
             msg = ('For visualization, the loss is {:10.4f} and the psnr is {:10.4f} at epoch {:d}'
                    ).format(loss.data.cpu().numpy(), psnr.data.cpu().numpy(),epo_idx)
             logger.info(msg)
-            break
 
 
 
