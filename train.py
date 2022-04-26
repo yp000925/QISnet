@@ -9,8 +9,8 @@ import logging
 from torch.utils.tensorboard import SummaryWriter
 
 seed = 42
-train_path = 'VOC2012/train_data'
-test_path = 'VOC2012/test_data'
+train_path = '/home/zhangyp/Documents/VOC2012/train_data'
+test_path = '/home/zhangyp/Documents/VOC2012/test_data'
 directory = './experiment'
 model_name = 'QISnet'
 ckpt_pth = ''

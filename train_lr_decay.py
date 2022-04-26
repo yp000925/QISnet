@@ -9,15 +9,15 @@ import logging
 from torch.utils.tensorboard import SummaryWriter
 
 seed = 42
-train_path = 'VOC2012/train_data'
-test_path = 'VOC2012/test_data'
+train_path = '/home/zhangyp/Documents/VOC2012/train_data'
+test_path = '/home/zhangyp/Documents/VOC2012/test_data'
 
 # train_path ='/Users/zhangyunping/Library/CloudStorage/OneDrive-connect.hku.hk/PhD/ECCV2020_Dynamic-master/datasample/VOC2012/small_train'
 #
 # test_path = '/Users/zhangyunping/Library/CloudStorage/OneDrive-connect.hku.hk/PhD/ECCV2020_Dynamic-master/datasample/VOC2012/small_test'
 
 directory = './experiment'
-model_name = 'QISnet'
+model_name = 'QISnet_lr_decay'
 ckpt_pth = ''
 
 patch_sz = 128
@@ -97,7 +97,6 @@ def eval_epoch(model,dataloader):
             info = ('%10.4g' * 2) % (epoch_loss/(batch_i+1), avg_psnr/(batch_i+1))
             pbar.set_description(info)
 
-
     return epoch_loss/(batch_i+1),avg_psnr/(batch_i+1)
 
 
@@ -159,7 +158,7 @@ if __name__=="__main__":
         logger.info("\n successfully load model %10s" % (model_name))
 
 
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, patience =1, verbose=True,eps = 1e-3,factor=0.5)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, patience =2, verbose=True,eps = 1e-3,factor=0.5)
     scheduler.last_epoch = start_epoch - 1
 
     # Start training
@@ -204,7 +203,7 @@ if __name__=="__main__":
         name_output =  os.path.join(vis_path,'Epoch{:d}_test_output.png'.format(epo_idx))
         name_gt =  os.path.join(vis_path,'Epoch{:d}_test_gt.png'.format(epo_idx))
         with torch.no_grad():
-            images = dataset_test.get_images(idx=1)
+            images = dataset_test.get_images(idx=0)
             x_binary = images['x_binary']
             x_noisy = images['x_noisy']
             cln_img = images['y']

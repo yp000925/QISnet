@@ -274,7 +274,7 @@ if __name__=="__main__":
     patch_sz = 128
     J=2
     binning = True
-    directory = '/Users/zhangyunping/Library/CloudStorage/OneDrive-connect.hku.hk/PhD/ECCV2020_Dynamic-master/datasample/VOC2012/small_test'
+    directory = '/home/zhangyp/Documents/VOC2012/test_data'
     dataset = BurstData(directory,patch_sz=patch_sz,num_patch=4,burst_sz=2,batch_sz=16,alpha=4,read_noise=0.25,
                         jit=0,J=J,channel_first=True,noise=True,rd_move=False,is_train=True,nbits=3,binning=binning)
     dataloader = DataLoader(dataset, batch_size=5,collate_fn=dataset.collect_fn)
