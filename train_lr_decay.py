@@ -158,7 +158,7 @@ if __name__=="__main__":
         logger.info("\n successfully load model %10s" % (model_name))
 
 
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, patience =2, verbose=True,eps = 1e-3,factor=0.5)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, patience=1, verbose=True,factor=0.5, threshold=0.1, threshold_mode='rel')
     scheduler.last_epoch = start_epoch - 1
 
     # Start training
